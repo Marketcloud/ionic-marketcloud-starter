@@ -1,5 +1,6 @@
 # Marketcloud Ionic Starter
-
+![Marketcloud](http://www.marketcloud.it/img/logo_1200.png)
+![Ionic](http://ionicframework.com/img/ionic-logo-blog.png)
 ## Installation
 
 ### Dependencies
