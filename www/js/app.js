@@ -90,8 +90,7 @@ app.run(function($rootScope,marketcloud){
 
 app.factory('marketcloud',['$rootScope',function(root){
     // put here your marketcloud app's public key
-    marketcloud.public = '5d2be853-37cc-485f-850b-3ba9252479e1';
-    //marketcloud.public = '8e083835-eacd-4cb9-8d99-bfda3d991c4f';
+    marketcloud.public = '8e083835-eacd-4cb9-8d99-bfda3d991c4f';
     if(window.localStorage['marketcloud.token'])
       marketcloud.token = window.localStorage['marketcloud.token'];
     return marketcloud;
