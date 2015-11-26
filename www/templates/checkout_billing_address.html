@@ -1,0 +1,52 @@
+<!--
+
+	1. Fetch/select/insert Addresses
+	2. Insert billing info
+	3. Do checkout
+
+-->
+
+
+<ion-view view-title="Checkout">
+  <ion-content>
+
+  <li class="item item-checkbox">
+     <label class="checkbox">
+       <input type="checkbox" ng-model="billingAddressSameAsShippingAddress">
+     </label>
+     Same as shipping address
+  </li>
+
+
+<div class="list list-inset" ng-hide="billingAddressSameAsShippingAddress">
+  <label class="item item-input">
+    <input type="text" placeholder="Full Name"  ng-model="billing_address.full_name">
+  </label>
+  <label class="item item-input item-select">
+    <div class="input-label">
+      Country
+    </div>
+    <select ng-model="billing_address.country">
+      <option>Italy</option>
+      <option selected>Switzerland</option>
+      <option>Austria</option>
+      <option>Vatican</option>
+    </select>
+  </label>
+  <label class="item item-input">
+    <input type="text" placeholder="City" ng-model="billing_address.city">
+  </label>
+  <label class="item item-input">
+    <input type="text" placeholder="Address line 1"ng-model="billing_address.address1">
+  </label>
+  <label class="item item-input">
+    <input type="text" placeholder="Address line 2"ng-model="billing_address.address2">
+  </label>
+  
+</div>
+<button class="button button-block button-positive" ng-click="checkBillingAddressAndProceed()">
+  Review and confirm <span class="ion-arrow-right-a"></span>
+</button>
+
+  </ion-content>
+</ion-view>

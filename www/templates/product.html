@@ -1,0 +1,22 @@
+<ion-view view-title="{{product.name}}">
+
+  <ion-content>
+    <div class="padding">
+  	 <button class="button button-red button-block" ng-click="addToCart()"><span class="ion ion-android-cart"></span> Add to cart</button>
+    </div>
+  	<div>
+   <div class="list card">
+
+  <div class="item">
+    <img src="{{product.imageUrl2}}" style="max-width:100%;">
+  </div>
+
+  <div class="item">
+    <b>{{product.name}}</b>
+    <p>$ {{product.price}}</p>
+  </div>
+
+</div>
+</div>
+  </ion-content>
+</ion-view>

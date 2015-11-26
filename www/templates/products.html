@@ -1,0 +1,27 @@
+<ion-view view-title="products">
+
+   <ion-content>
+    
+      
+        <div class="card list list-inset">
+  <label class="item item-input">
+    <i class="icon ion-search placeholder-icon"></i>
+    <input type="text" placeholder="Search">
+  </label>
+</div>
+      <div style="text-align:center;font-family:montserrat;font-weight:bold;font-size:20px;color:#333;margin-bottom:20px">Products</div>
+      <div class="list">
+        <a ng-repeat="item in products" 
+           href="#/app/products/{{item.id}}"
+           class="card item item-thumbnail-left">
+ 
+          <img ng-src="{{item.imageUrl2}}" />
+          <h2>{{ item.name }}</h2>
+          <h4>$ {{ item.price }}</h4>
+          
+        </a>
+
+      </div>
+
+    </ion-content>
+</ion-view>

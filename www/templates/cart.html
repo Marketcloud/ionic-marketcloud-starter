@@ -1,0 +1,33 @@
+<ion-view view-title="Cart">
+   <ion-content>
+    
+      
+      
+      <div ng-hide="cart.items.length === 0">
+      
+      <div class="padding"><button class="button button-red button-block" ng-click="update()"><span class="ion ion-loop"></span> Update</button></div>
+      <div class="list">
+        <div ng-repeat="item in cart.items" 
+           class="card item item-thumbnail-left">
+
+          <img ng-src="{{item.imageUrl2}}">
+          <h2>{{ item.name }}</h2>
+          <h4>$ {{ item.price }}</h4>
+          <div style="font-size:18px;">
+            <a class="ion ion-plus" style="margin-right:20px;" ng-click="increase(item)"></a>
+            <span>{{item.quantity}}</span>
+            <a class="ion ion-minus" style="margin-left:20px;" ng-click="decrease(item)"></a>
+          </div>
+        </div>
+
+      </div>
+      <div class="padding">
+      <a class="button button-positive button-block" href="#/app/checkout"><span class="ion ion-android-done-all"></span> Checkout</a>
+      </div>
+      </div>
+      <div ng-hide="cart.items.length > 0">
+        <div style="text-align:center;font-family:montserrat;font-weight:bold;font-size:20px;color:#333;margin:20px">Cart is empty</div>
+      </div>
+
+    </ion-content>
+</ion-view>

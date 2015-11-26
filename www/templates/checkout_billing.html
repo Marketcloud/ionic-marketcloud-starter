@@ -1,0 +1,35 @@
+<!--
+
+	1. Fetch/select/insert Addresses
+	2. Insert billing info
+	3. Do checkout
+
+-->
+
+
+<ion-view view-title="Checkout">
+  <ion-content>
+
+
+
+<div class="list list-inset">
+  <label class="item item-input">
+    <input type="text" placeholder="Full name on card" ng-model="credit_card.name">
+  </label>
+  <label class="item item-input">
+    <input type="text" placeholder="Card number" ng-model="credit_card.number">
+  </label>
+  <label class="item item-input">
+    <input type="text" placeholder="Expiry e.g. mm/yyyy" ng-model="credit_card.expiry">
+  </label>
+  <label class="item item-input">
+    <input type="number" placeholder="CVC" ng-model="credit_card.cvc">
+  </label>
+  
+</div>
+<button class="button button-block button-positive" ng-click="checkBillingAndProceed()">
+  Next <span class="ion-arrow-right-a"></span>
+</button>
+
+  </ion-content>
+</ion-view>
