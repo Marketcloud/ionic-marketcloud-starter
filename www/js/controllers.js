@@ -178,9 +178,12 @@ angular.module('starter.controllers', [])
   })
   $scope.addToCart = function() {
     var prod = $scope.product;
+    console.log("Aggiungo ",prod)
     mc.carts.add(window.localStorage['marketcloud.cart_id'],[{product_id : prod.id,quantity:1}],function(err,data){
-      if (err)
+      if (err){
+        console.log(err)
         throw new Error("An error has occurred")
+      }
       else {
         root.cart = data;
         root.$broadcast('cartUpdate');
@@ -316,15 +319,15 @@ angular.module('starter.controllers', [])
     credit_card : {}
   }
 })
-.controller('CheckoutCtrl',function($scope,marketcloud,$state,CheckoutData,$ionicPopup){
+.controller('CheckoutCtrl',function($scope,marketcloud,$state,CheckoutData,$ionicPopup,$rootScope,$http){
   console.log("CheckoutCtrl")
   $scope.billingAddressSameAsShippingAddress = true;
-
+  $scope.errorMessage = null;
   $scope.shipping_address = CheckoutData.shipping_address;
   $scope.billing_address = CheckoutData.billing_address;
   $scope.credit_card = CheckoutData.credit_card;
 
-
+console.log("marketcloud",marketcloud)
     $scope.$on('$ionicView.enter', function(e) {
       if (window.localStorage['marketcloud.address']) {
           marketcloud.addresses.list({},function(err,data){
@@ -341,6 +344,17 @@ angular.module('starter.controllers', [])
           
         })
       }
+      marketcloud.carts.getById(window.localStorage['marketcloud.cart_id'],function(err,data){
+        if (err) {
+          $ionicPopup.alert({
+              title:"error",
+              template : "An error has occurred while loading the cart, please try again."
+            })
+        } else {
+          console.log("Sono il checkout e ho trovato il carrello ",data)
+          $scope.cart = data
+        }
+      })
   });
 
 
@@ -350,14 +364,59 @@ angular.module('starter.controllers', [])
     console.log($scope.shipping_address)
 
     CheckoutData.shipping_address = $scope.shipping_address;
-    $state.go('app.checkout_billing');
+    
+
+    marketcloud.addresses.create($scope.shipping_address,function(err,data){
+      if (err) {
+        console.log(err)
+        $ionicPopup.alert({
+            title : "Error",
+            template : 'An error has occurred while saving the address.'
+          });
+      } else {
+        console.log("shipping_address salvato",data)
+        $scope.shipping_address = data;
+        CheckoutData.shipping_address = data;
+        $state.go('app.checkout_billing');
+      }
+    })
 
   }
+
+
+
 
   $scope.checkBillingAndProceed = function() {
-    CheckoutData.credit_card = $scope.credit_card;
-    $state.go('app.checkout_billing_address');
-  }
+    
+    var stripe_data = {
+        number: $scope.credit_card.number,
+        cvc: $scope.credit_card.cvc,
+        exp_month: $scope.credit_card.expiry.split('/')[0],
+        exp_year: $scope.credit_card.expiry.split('/')[1]
+      }
+      
+    
+      Stripe.card.createToken(stripe_data, function(status,response){
+        console.log("Ciao sono il callback di stripe, figo eh! Prima status poi response",status,response)
+       // 
+       if (status < 400) {
+        CheckoutData.credit_card = $scope.credit_card;
+        CheckoutData.stripe_token = response.id;
+
+        $state.go('app.checkout_billing_address');
+      } else {
+        
+        $ionicPopup.alert({
+          title : 'error',
+          template : response.error.message
+        })
+      }
+      });
+      
+    }
+
+
+
   $scope.checkBillingAddressAndProceed = function() {
     if ($scope.billingAddressSameAsShippingAddress)
       CheckoutData.billing_address = CheckoutData.shipping_address;
@@ -368,30 +427,58 @@ angular.module('starter.controllers', [])
   }
 
   $scope.doCheckout = function() {
-    console.log("CART_ID",window.localStorage['marketcloud.cart_id'])
 
-    marketcloud.carts.checkout({
-      cart_id : parseInt(window.localStorage['marketcloud.cart_id'],10),
-      shipping_address : $scope.shipping_address,
-      billing_address : $scope.billing_address
-    },function(err,data){
+    //console.log("CheckoutData",CheckoutData)
+
+
+    var the_order = {
+      items :$scope.cart.items,
+      shipping_address_id : $scope.shipping_address.id,
+      billing_address_id : $scope.billing_address.id
+    }
+    //console.log("Creating this order",the_order)
+
+    marketcloud.orders.create(the_order,function(err,created_order){
       if (err)
-        console.log(err)
+        console.log("an error has occurred while creating the order",err)
       else{
-          $ionicPopup.alert({
+          
+
+          var payload = {
+              amount : Math.round(created_order.total*100),
+              stripe_token : CheckoutData.stripe_token
+            }
+            console.log("Mando questo payload",payload)
+          $http({
+            method : 'POST',
+            url : 'http://localhost:5000/v0/integrations/stripe/charge',
+            data : payload,
+            headers: {
+            Authorization: marketcloud.public
+          }
+
+          }).success(function(response){
+            $ionicPopup.alert({
             title : "Success",
             template : 'Your order was placed successfully'
           });
-          $scope.shipping_address = {}
+          }).error(function(response){
+            $ionicPopup.alert({
+            title : "Error",
+            template : 'There was an error while processing the payment.'
+          });
+            console.log(response)
+          })
+
+          
+          /*$scope.shipping_address = {}
           $scope.billing_address = {}
-          $scope.credit_card = {}
+          $scope.credit_card = {}*/
+
           $state.go('app.products');
       }
     })
   }
 
-  $scope.doCheckout = function() {
-
-  }
 })
 

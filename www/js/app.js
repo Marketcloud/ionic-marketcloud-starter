@@ -14,6 +14,7 @@ window.debug = function() {
 }
 
 var app = angular.module('starter', ['ionic', 'starter.controllers'])
+Stripe.setPublishableKey('pk_test_o3U6ovC4zG8SXiEPsvFLSQ2E');
 
 app.run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -30,6 +31,8 @@ app.run(function($ionicPlatform) {
     }
   });
 })
+
+
 
 /*
   Here we prevent that a not-logged-in user visits non-public states
@@ -90,7 +93,7 @@ app.run(function($rootScope,marketcloud){
 
 app.factory('marketcloud',['$rootScope',function(root){
     // put here your marketcloud app's public key
-    marketcloud.public = '';
+    marketcloud.public = '8e083835-eacd-4cb9-8d99-bfda3d991c4f';
     if(window.localStorage['marketcloud.token'])
       marketcloud.token = window.localStorage['marketcloud.token'];
     return marketcloud;
