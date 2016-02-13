@@ -62,28 +62,24 @@ app.run(function($rootScope,$state){
   })
 })*/
 
-app.run(function($rootScope,marketcloud){
-  window.debug("localstorage",window.localStorage)
-  if (!window.localStorage['marketcloud.cart_id']) {
-    marketcloud.carts.create([],function(err,cart){
-      if (err)
-        throw new Error("Error creating the cart");
-      else {
-        window.localStorage['marketcloud.cart_id'] = cart.id;
-        $rootScope.$broadcast("cartUpdate",cart);
-        console.log("Cart created")
-      }
+app.run(function($rootScope,CartService){
+  
+
+
+
+  if (window.localStorage['marketcloud.cart_id']) {
+    console.log("Ho già un id di carrello")
+    CartService.load(window.localStorage['marketcloud.cart_id'],function(){
+      console.log("Cart loaded",CartService.data)
     })
-  } else {
-    marketcloud.carts.getById(window.localStorage['marketcloud.cart_id'],function(err,cart){
-      if (err) {
-        throw new Error("There was an error fetching the cart");
-      } else {
-       $rootScope.$broadcast("cartUpdate",cart);
-       console.log("Cart fetched"); 
-      }
+  } else{
+    console.log("Non ho un id di carrello, ne creo uno")
+    CartService.create(function(){
+      console.log("New cart created",CartService.data)
+      window.localStorage['marketcloud.cart_id'] = CartService.data.id
     })
   }
+
 })
 
 
@@ -91,12 +87,141 @@ app.run(function($rootScope,marketcloud){
 
 
 
-app.factory('marketcloud',['$rootScope',function(root){
+app.factory('marketcloud',function(){
     // put here your marketcloud app's public key
-    marketcloud.public = '8e083835-eacd-4cb9-8d99-bfda3d991c4f';
-    if(window.localStorage['marketcloud.token'])
-      marketcloud.token = window.localStorage['marketcloud.token'];
+    marketcloud.baseUrl = 'https://mc-api.azurewebsites.net/v0'
+    marketcloud.public = 'f84af487-a315-42e6-a57a-d79296bd9d99';
+    
     return marketcloud;
+})
+
+app.service('ProductService',function(marketcloud,$q){
+  return {
+    getById : function(id) {
+      return $q(function(resolve,reject){
+        marketcloud.products.getById(id,function(err,product){
+          if (err)
+            reject(err)
+          else
+            resolve(product)
+        })
+      })
+    },
+    list : function(query) {
+      return $q(function(resolve,reject){
+        marketcloud.products.list(query,function(err,product){
+          if (err)
+            reject(err)
+          else
+            resolve(product)
+        })
+      })
+    } 
+  }
+})
+
+
+app.service('CartsService',function(marketcloud,$q){
+  return {
+    getById : function(id) {
+      return $q(function(resolve,reject){
+        marketcloud.carts.getById(id,function(err,cart){
+          if (err)
+            reject(err)
+          else
+            resolve(cart)
+        })
+      })
+    },
+    create : function(items) {
+      return $q(function(resolve,reject){
+        marketcloud.carts.create(items || [],function(err,cart){
+          if (err)
+            reject(err)
+          else
+            resolve(cart)
+        })
+      })
+    }
+  }
+})
+
+
+app.service('CartService',['marketcloud',function(marketcloud){
+  return {
+    data : null,
+    load : function(id,callback) {
+      
+
+      var _this = this;
+      marketcloud.carts.getById(id,function(err,data){
+        if (err)
+          callback(err);
+        else {
+          
+
+          _this.data = data;
+          callback(null)
+        }
+      })
+    },
+    create : function(callback) {
+      var _this = this;
+      
+      marketcloud.carts.create({},function(err,data){
+        if (err){
+          
+          callback(err);
+        }
+        else {
+          
+          _this.data = data;
+          callback(null)
+        }
+      })
+    },
+    add : function(items,callback){
+      var _this = this;
+      
+      if (!this.data)
+        throw new Error("Cart must be loaded first!")
+      marketcloud.carts.add(this.data.id,items,function(err,data){
+        if (err)
+          callback(err);
+        else {
+          _this.data = data;
+          callback(null)
+        }
+      })
+    },
+    update : function(items){
+      var _this = this;
+      if (!this.data)
+        throw new Error("Cart must be loaded first!")
+      marketcloud.carts.update(this.data.id,items,function(err,data){
+        if (err)
+          callback(err);
+        else {
+          _this.data = data;
+          callback(null)
+        }
+      })
+    },
+    remove : function(items){
+      var _this = this;
+      if (!this.data)
+        throw new Error("Cart must be loaded first!")
+      marketcloud.carts.remove(this.data.id,items,function(err,data){
+        if (err)
+          callback(err);
+        else {
+          _this.data = data;
+          callback(null)
+        }
+      })
+    }
+
+  }
 }])
 
 app.config(function($stateProvider, $urlRouterProvider) {
@@ -110,31 +235,20 @@ app.config(function($stateProvider, $urlRouterProvider) {
     })
 
   .state('app.home', {
-    url: '/home',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/home.html'
+      url: '/home',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/products.html',
+          controller: 'ProductsCtrl'
+        }
+      },
+      resolve:{
+        products : function(ProductService,$stateParams) {
+          return ProductService.list($stateParams.query || {})
+        }
       }
-    }
   })
-  .state('app.account', {
-    url: '/account',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/account.html',
-        controller: 'AccountCtrl'
-      }
-    }
-  })
-  .state('app.orders', {
-    url: '/orders',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/orders.html',
-        controller: 'OrdersCtrl'
-      }
-    }
-  })
+
   .state('app.cart', {
       url: '/cart',
       views: {
@@ -182,10 +296,25 @@ app.config(function($stateProvider, $urlRouterProvider) {
     }) 
     .state('app.products', {
       url: '/products',
+      params :{query:null},
       views: {
         'menuContent': {
           templateUrl: 'templates/products.html',
           controller: 'ProductsCtrl'
+        }
+      },
+      resolve:{
+        products : function(ProductService,$stateParams) {
+          return ProductService.list($stateParams.query || {})
+        }
+      }
+    }) 
+    .state('app.categories', {
+      url: '/categories',
+      views: {
+        'menuContent': {
+          templateUrl: 'templates/categories.html',
+          controller: 'CategoriesCtrl'
         }
       }
     })

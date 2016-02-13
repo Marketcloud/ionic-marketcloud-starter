@@ -19,21 +19,13 @@
 
   <ion-side-menu side="left">
     <ion-header-bar class="bar-red">
-      <h1 class="title">{{user.email || "Ciao"}}</h1>
+      <h1 class="title">Ionic Marketcloud</h1>
     </ion-header-bar>
     <ion-content>
       <ion-list>
-        <ion-item menu-close ng-click="login()" ng-hide="loggedIn===true">
-          Login
-        </ion-item>
-        <ion-item menu-close href="#/app/account" ng-show="loggedIn===true">
-          My account
-        </ion-item>
-        <ion-item menu-close ng-click="doLogout()" ng-show="loggedIn===true">
-          Logout
-        </ion-item>
-        <ion-item menu-close href="#/app/search">
-          Search
+        
+        <ion-item menu-close href="#/app/categories">
+          Categories
         </ion-item>
         <ion-item menu-close href="#/app/cart">
           Cart

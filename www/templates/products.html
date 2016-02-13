@@ -1,27 +1,25 @@
 <ion-view view-title="products">
+<ion-content>
 
-   <ion-content>
-    
-      
-        <div class="card list list-inset">
-  <label class="item item-input">
+
+<div class="list">
+<label class="item item-input">
     <i class="icon ion-search placeholder-icon"></i>
-    <input type="text" placeholder="Search">
+    <input type="text"
+    placeholder="Search"
+    ng-model="query.q",
+    ng-change="loadProducts()">
   </label>
+
+  <a ng-repeat="item in products"
+    href="#/app/products/{{item.id}}"
+    class="item item-thumbnail-left">
+    
+    <img ng-src="{{item.images[0]}}" />
+    <div class="product_name">{{ item.name }}</div>
+    <div class="product_price">$ {{ item.price }}</div>
+    
+  </a>
 </div>
-      <div style="text-align:center;font-family:montserrat;font-weight:bold;font-size:20px;color:#333;margin-bottom:20px">Products</div>
-      <div class="list">
-        <a ng-repeat="item in products" 
-           href="#/app/products/{{item.id}}"
-           class="card item item-thumbnail-left">
- 
-          <img ng-src="{{item.images[0]}}" />
-          <h2>{{ item.name }}</h2>
-          <h4>$ {{ item.price }}</h4>
-          
-        </a>
-
-      </div>
-
-    </ion-content>
+</ion-content>
 </ion-view>

@@ -1,6 +1,6 @@
 {
   "name": "marketcloud-js",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "authors": [
     "Mattia Alfieri m.alfieri@marketcloud.it"
   ],
@@ -29,14 +29,14 @@
   "moduleType": [
     "globals"
   ],
-  "_release": "0.0.1",
+  "_release": "0.0.3",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.1",
-    "commit": "f19d39d773dfc296ffa55e8d5a019af48a1dbddf"
+    "tag": "v0.0.3",
+    "commit": "c970098322085ab21031ac2c45a5654bb0e29cf7"
   },
   "_source": "git://github.com/Marketcloud/marketcloud-js.git",
-  "_target": "~0.0.1",
+  "_target": "~0.0.3",
   "_originalSource": "marketcloud-js",
   "_direct": true
 }

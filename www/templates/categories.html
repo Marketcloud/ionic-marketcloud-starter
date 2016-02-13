@@ -1,0 +1,23 @@
+<ion-view view-title="products">
+
+   <ion-content>
+    
+      
+      
+      
+
+      <div class="list card" ng-repeat="item in categories" ng-click="loadCategoryProducts(item)">
+
+        <div class="item"  >
+          <h1>{{item.name}}</h1>
+        </div>
+
+        <div class="item item-image">
+          <img ng-src="{{item.image_url}}">
+        </div>
+
+
+      </div>
+
+    </ion-content>
+</ion-view>

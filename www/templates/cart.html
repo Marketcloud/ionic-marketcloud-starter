@@ -5,13 +5,13 @@
       
       <div ng-hide="cart.items.length === 0">
       
-      <div class="padding"><button class="button button-red button-block" ng-click="update()"><span class="ion ion-loop"></span> Update</button></div>
+      <!--<div class="padding"><button class="button button-red button-block" ng-click="update()"><span class="ion ion-loop"></span> Update</button></div>-->
       <div class="list">
         <div ng-repeat="item in cart.items" 
-           class="card item item-thumbnail-left">
+           class="item item-thumbnail-left">
 
           <img ng-src="{{item.images[0]}}">
-          <h2>{{ item.name }}</h2>
+          <h2>{{ item.name }} (<span ng-repeat="(key,value) in getVariantValues(item)">{{value}} </span>)</h2>
           <h4>$ {{ item.price }}</h4>
           <div style="font-size:18px;">
             <a class="ion ion-plus" style="margin-right:20px;" ng-click="increase(item)"></a>
@@ -19,10 +19,15 @@
             <a class="ion ion-minus" style="margin-left:20px;" ng-click="decrease(item)"></a>
           </div>
         </div>
+        <div class="item">
+          <div class="padding">
+          <h3>Total: $ {{getCartTotal()}}</h3>
+          </div>
+        </div>
 
       </div>
-      <div class="padding">
-      <a class="button button-positive button-block" href="#/app/checkout"><span class="ion ion-android-done-all"></span> Checkout</a>
+      <div class="padding" ng-show="cart.items.length > 0">
+        <a class="button button-positive button-block" href="#/app/checkout"><span class="ion ion-android-done-all"></span> Checkout</a>
       </div>
       </div>
       <div ng-hide="cart.items.length > 0">
