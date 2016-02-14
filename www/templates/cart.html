@@ -14,9 +14,15 @@
           <h2>{{ item.name }} (<span ng-repeat="(key,value) in getVariantValues(item)">{{value}} </span>)</h2>
           <h4>$ {{ item.price }}</h4>
           <div style="font-size:18px;">
-            <a class="ion ion-plus" style="margin-right:20px;" ng-click="increase(item)"></a>
+            <a class="ion ion-plus"
+                style="margin-right:20px;"
+                ng-click="increase(item)"
+                ></a>
             <span>{{item.quantity}}</span>
-            <a class="ion ion-minus" style="margin-left:20px;" ng-click="decrease(item)"></a>
+            <a class="ion ion-minus"
+              style="margin-left:20px;"
+              ng-click="decrease(item)"
+              ></a>
           </div>
         </div>
         <div class="item">
@@ -30,7 +36,7 @@
         <a class="button button-positive button-block" href="#/app/checkout"><span class="ion ion-android-done-all"></span> Checkout</a>
       </div>
       </div>
-      <div ng-hide="cart.items.length > 0">
+      <div ng-show="cart.items.length === 0">
         <div style="text-align:center;font-family:montserrat;font-weight:bold;font-size:20px;color:#333;margin:20px">Cart is empty</div>
       </div>
 

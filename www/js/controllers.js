@@ -79,96 +79,101 @@ angular.module('starter.controllers', [])
     }
   ])
 
-.controller('ProductCtrl',['$scope', 'marketcloud', '$stateParams',  '$ionicPopup',
-  function($scope, mc, $stateParams,  $ionicPopup) {
+.controller('ProductCtrl',
+  function($scope, $stateParams,  $ionicPopup, $ionicLoading, product, CartService) {
 
     $scope.selectedOptions = {};
 
-    mc.products.getById($stateParams.productId, function(err, product) {
-      $scope.product = product;
-      $scope.$apply()
-    })
+    $scope.product = product
+
+    function AllRequiredOptionsAreSelected() {
+      return Object.keys($scope.selectedOptions).length === Object.keys($scope.product.variantsDefinition).length
+    }
+
     $scope.addToCart = function() {
+
+      $ionicLoading.show({template : 'Adding to cart...'});
+
+      var promise = null;
 
       if ($scope.product.has_variants === true) {
 
-        if (Object.keys($scope.selectedOptions).length < Object.keys($scope.product.variantsDefinition).length)
+        if (!AllRequiredOptionsAreSelected()){
+          $ionicLoading.hide();
           return $ionicPopup.alert({
             title: "Action required",
             template: "Please select the required options for this product."
-          })
-
-        var chosen = null;
-        for (var i = 0; i < $scope.product.variants.length; i++) {
-          var curr = $scope.product.variants[i];
-
-          var all_match = true;
-          for (var k in $scope.selectedOptions) {
-
-            if (curr[k] !== $scope.selectedOptions[k]) {
-              all_match = false;
-            }
-          }
-
-          if (true === all_match) {
-            chosen = curr;
-          }
-
+          });
         }
-
-
-        mc.carts.add(window.localStorage['marketcloud.cart_id'], [{
-          product_id: $scope.product.id,
-          quantity: 1,
-          variant_id: chosen.id
-        }], function(err, data) {
-          if (err)
-            return $ionicPopup.alert({
-              title: "Error",
-              template: "An error has occurred, please try again."
-            })
-
           
 
-        })
+        var selectedVariant = getSelectedVariant();
+        promise = CartService.add([{
+          product_id: $scope.product.id,
+          quantity: 1,
+          variant_id: selectedVariant.id
+        }]);
       } else {
-        var prod = $scope.product;
-        
-
-        mc.carts.add(window.localStorage['marketcloud.cart_id'], [{
-          product_id: prod.id,
+        promise = CartService.add([{
+          product_id: $scope.product.id,
           quantity: 1,
           variant_id: 0
-        }], function(err, data) {
-          if (err)
-            return $ionicPopup.alert({
-              title: "Error",
-              template: "An error has occurred, please try again."
-            })
-          else {
-            popup.alert({
-              title: 'Message',
-              template: 'The item was added to cart'
-            });
-            //$scope.$apply()
-          }
-        })
+        }]);
       }
 
 
+      promise
+        .then(function(cart){
+          $ionicLoading.hide();
+          $ionicPopup.alert({
+              title: 'Message',
+              template: 'The item was added to cart'
+          });
+        })
+        .catch(function(error){
+          $ionicLoading.hide();
+          $ionicPopup.alert({
+              title: "Error",
+              template: "An error has occurred, please try again."
+          })
+        })
+    }
+
+
+  function getSelectedVariant() {
+    var chosen = null;
+    for (var i = 0; i < $scope.product.variants.length; i++) {
+      var curr = $scope.product.variants[i];
+
+      var all_match = true;
+      for (var k in $scope.selectedOptions) {
+
+        if (curr[k] !== $scope.selectedOptions[k]) {
+          all_match = false;
+        }
+      }
+
+      if (true === all_match) {
+        chosen = curr;
+
+      }
 
     }
+    return chosen;
   }
-])
 
 
 
-.controller('CartCtrl', ['$scope', 'marketcloud',  '$ionicPopup', '$ionicLoading', 'CartService',
-  function($scope, mc,  popup, $ionicLoading, CartService) {
+  }
+)
 
 
-    $scope.cart = {};
-    $scope.updating = false;
+
+.controller('CartCtrl',
+  function($scope, $ionicLoading, CartService,cart) {
+
+    $scope.cart = cart;
+    
 
     $scope.getVariantValues = function(product) {
       if (!product.hasOwnProperty('variantsDefinition'))
@@ -182,8 +187,6 @@ angular.module('starter.controllers', [])
     }
 
     $scope.getCartTotal = function() {
-
-
       if ($scope.cart.items && $scope.cart.items.length > 0) {
         return $scope.cart.items.map(function(x) {
           return x.price * x.quantity;
@@ -192,31 +195,14 @@ angular.module('starter.controllers', [])
         });
       } else
         return 0
-
-
     }
 
 
-    $ionicLoading.show({
-      template: 'Loading...'
-    });
 
-    $scope.$on('$ionicView.enter', function(e) {
-      $scope.cart = {}
-      CartService.load(window.localStorage['marketcloud.cart_id'], function(err, data) {
-        $scope.cart = CartService.data;
-        $ionicLoading.hide();
-        $scope.$apply();
-      })
-
-
-
-    });
 
 
 
     $scope.increase = function(item) {
-      $scope.updating = true;
       item.quantity += 1;
       var items = [{
         product_id: item.id,
@@ -224,17 +210,20 @@ angular.module('starter.controllers', [])
         quantity: 1
       }]
 
-      CartService.add(items, function(err) {
-        $scope.updating = false;
-        
-
+      CartService.add(items)
+      .then(function(response){
         $scope.cart = CartService.data;
-        $scope.$apply()
+      })
+      .catch(function(response){
+        $ionicPopup.alert({
+          title:'Error',
+          template:'An error has occurred, please try again.'
+        })
+        item.quantity +=1;
       })
     }
 
     $scope.decrease = function(item) {
-      $scope.updating = true;
       item.quantity -= 1;
       var items = [{
         product_id: item.id,
@@ -242,16 +231,22 @@ angular.module('starter.controllers', [])
         quantity: -1
       }]
 
-      CartService.add(items, function(err) {
-        $scope.updating = false;
+      CartService.add(items)
+      .then(function(response){
         $scope.cart = CartService.data;
-        $scope.$apply()
+      })
+      .catch(function(response){
+        $ionicPopup.alert({
+          title:'Error',
+          template:'An error has occurred, please try again.'
+        })
+        item.quantity +=1;
       })
     }
 
 
   }
-])
+)
   .factory('CheckoutData', function() {
     return {
       shipping_address: {},
@@ -356,6 +351,7 @@ angular.module('starter.controllers', [])
 
       marketcloud.orders.create(the_order, function(err, created_order) {
         if (err){
+
           $ionicLoading.hide();
           $ionicPopup.alert({
             title: "Error",
@@ -402,8 +398,18 @@ angular.module('starter.controllers', [])
           $scope.billing_address = {};
           $scope.credit_card = {};
 
-          // Going back to home view
-          $state.go('app.home');
+          //We create a new cart, since the old one was promoted to order
+          marketcloud.carts.create([],function(err,data){
+            // Going back to home view
+            $state.go('app.home');
+            window.localStorage['marketcloud.cart_id'] = data.id;
+
+
+          })
+
+          
+
+          
         }
       })
     }

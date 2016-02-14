@@ -14,7 +14,7 @@ window.debug = function() {
 }
 
 var app = angular.module('starter', ['ionic', 'starter.controllers'])
-Stripe.setPublishableKey('pk_test_o3U6ovC4zG8SXiEPsvFLSQ2E');
+Stripe.setPublishableKey('YOUR_KEY_HERE');
 
 app.run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -33,52 +33,26 @@ app.run(function($ionicPlatform) {
 })
 
 
-
-/*
-  Here we prevent that a not-logged-in user visits non-public states
-*/
-/*
-app.run(function($rootScope,$state){
-  console.log("Sono app.run che intercetta le view")
-  $rootScope.$on("$stateChangeStart",function (event, toState, toParams, fromState, fromParams) {
-    
-    // The list of states that can be accessed without authentication
-    var public_states = [
-      'app.home',
-      'app.login'
-    ]
-    
-    if (!window.localStorage['marketcloud.token'] && public_states.indexOf(toState.name) <0) {
-      event.preventDefault();
-      // This is the redirection state, whenever a user tries to move to a state
-      // that cannot be accessed without authentication, the state will be redirected.
-      $state.go("app.home")
-    }
-
-    if (window.localStorage['marketcloud.token'] && toState.name === 'app.home') {
-      event.preventDefault();
-      $state.go("app.products")
-    }
-  })
-})*/
-
-app.run(function($rootScope,CartService){
+app.run(function(CartService){
   
 
 
+  var promise = null;
 
-  if (window.localStorage['marketcloud.cart_id']) {
-    console.log("Ho già un id di carrello")
-    CartService.load(window.localStorage['marketcloud.cart_id'],function(){
-      console.log("Cart loaded",CartService.data)
-    })
-  } else{
-    console.log("Non ho un id di carrello, ne creo uno")
-    CartService.create(function(){
-      console.log("New cart created",CartService.data)
-      window.localStorage['marketcloud.cart_id'] = CartService.data.id
-    })
+  if (window.localStorage['marketcloud.cart_id']){
+    promise = CartService.getById(window.localStorage['marketcloud.cart_id']);
   }
+  else{
+    promise = CartService.create([]);
+  }
+  
+  promise
+  .then(function(data){
+    window.localStorage['marketcloud.cart_id'] = data.id;
+  })
+  .catch(function(err){
+    console.log("Unable to init the cart")
+  })
 
 })
 
@@ -121,32 +95,84 @@ app.service('ProductService',function(marketcloud,$q){
 })
 
 
-app.service('CartsService',function(marketcloud,$q){
+app.service('CartService',function(marketcloud,$q){
   return {
+    data : null,
     getById : function(id) {
+      var _this = this;
       return $q(function(resolve,reject){
         marketcloud.carts.getById(id,function(err,cart){
           if (err)
             reject(err)
-          else
+          else{
+            _this.data = cart;
             resolve(cart)
+          }
         })
       })
     },
     create : function(items) {
+      var _this = this;
       return $q(function(resolve,reject){
         marketcloud.carts.create(items || [],function(err,cart){
           if (err)
             reject(err)
-          else
+          else{
+            _this.data = cart;
             resolve(cart)
+          }
         })
       })
-    }
+    },
+    add : function(items) {
+      var _this = this;
+      if (!this.data)
+        throw new Error("Cart must be initialized first!")
+      return $q(function(resolve,reject){
+        marketcloud.carts.add(_this.data.id,items,function(err,cart){
+          if (err)
+            reject(err)
+          else{
+            _this.data = cart;
+            resolve(cart)
+          }
+        })
+      })
+    },
+    update : function(update) {
+      var _this = this;
+      if (!this.data)
+        throw new Error("Cart must be initialized first!")
+      return $q(function(resolve,reject){
+        marketcloud.carts.add(_this.data.id,update,function(err,cart){
+          if (err)
+            reject(err)
+          else{
+            _this.data = cart;
+            resolve(cart)
+          }
+        })
+      })
+    },    
+    remove : function(items) {
+      var _this = this;
+      if (!this.data)
+        throw new Error("Cart must be initialized first!")
+      return $q(function(resolve,reject){
+        marketcloud.carts.add(_this.data.id,items,function(err,cart){
+          if (err)
+            reject(err)
+          else{
+            _this.data = cart;
+            resolve(cart)
+          }
+        })
+      })
+    },      
   }
 })
 
-
+/*
 app.service('CartService',['marketcloud',function(marketcloud){
   return {
     data : null,
@@ -223,7 +249,7 @@ app.service('CartService',['marketcloud',function(marketcloud){
 
   }
 }])
-
+*/
 app.config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
 
@@ -255,6 +281,11 @@ app.config(function($stateProvider, $urlRouterProvider) {
         'menuContent': {
           templateUrl: 'templates/cart.html',
           controller: 'CartCtrl'
+        }
+      },
+      resolve:{
+        cart : function(CartService) {
+          return CartService.getById(window.localStorage['marketcloud.cart_id'])
         }
       }
     })
@@ -326,7 +357,12 @@ app.config(function($stateProvider, $urlRouterProvider) {
         templateUrl: 'templates/product.html',
         controller: 'ProductCtrl'
       }
-    }
+    },
+    resolve:{
+        product : function(ProductService,$stateParams) {
+          return ProductService.getById($stateParams.productId)
+        }
+      }
   });
   // if none of the above states are matched, use this as the fallback
   $urlRouterProvider.otherwise('/app/home');
