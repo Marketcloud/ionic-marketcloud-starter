@@ -17,7 +17,8 @@ Fork this repository and then clone it from your local environment.
 * ~~Application skeleton~~
 * ~~Catalogue~~
 * ~~Cart~~
-* ~~Account~~
-* Complete checkout
+* ~~Guest Checkout~~
+* Account management
+* Registered user checkout
 * Add input validation
-* Improve caching / persistance
+* Caching
