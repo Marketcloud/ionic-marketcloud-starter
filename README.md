@@ -5,10 +5,9 @@
 
 ### Dependencies
 Since this project uses the Ionic framework, you have to install it first.
-Head at the official site to learn how to install it.
+You can find all the informations at their [website](http://www.ionicframework.com)
 
 ### Install
-
 Fork this repository and then clone it from your local environment.
 
 
@@ -22,3 +21,7 @@ Fork this repository and then clone it from your local environment.
 * Registered user checkout
 * Add input validation
 * Caching
+
+## Contacts && Feedback
+* Feel free to ask questions and to send feedback at info[at]marketcloud.it
+* If you want to contribute, just send a pull request :) (It would be super awesome!)
