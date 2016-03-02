@@ -63,11 +63,11 @@ app.run(function(CartService){
 
 app.factory('marketcloud',function(){
     // put here your marketcloud app's public key
-    marketcloud.baseUrl = 'https://mc-api.azurewebsites.net/v0'
     marketcloud.public = 'f84af487-a315-42e6-a57a-d79296bd9d99';
     
     return marketcloud;
 })
+
 
 app.service('ProductService',function(marketcloud,$q){
   return {
